@@ -22,21 +22,14 @@ class UserController extends Controller
             $user = User::find($id);
 
             if ($current_user->id == $user->id) {
-//            $permission = V_PermissionUser::where('username', $user->username)
-//                ->where('permission_name', 'GESTIÓN DE PERFIL PROPIO')
-//                ->get();
-//
-//            if(count($permission) > 0){
                 $user->name = $request->name;
                 $user->birth_date = $request->birth_date;
-
 
                 $user->update();
 
                 return response()->json([
                     'message' => 'Usuario modificado exitosamente'
                 ], 200);
-//            }
             }
 
             return response()->json([
@@ -54,6 +47,9 @@ class UserController extends Controller
     public function createRole(Request $request)
     {
         try {
+            $request->validate([
+                'name' => 'required',
+            ]);
             $current_user = $request->user();
 
             $permission = V_PermissionUser::where('username', $current_user->username)
@@ -81,14 +77,13 @@ class UserController extends Controller
         } catch (\Exception $ex) {
             return response()->json([
                 'error' => 'Hubo un error al procesar la solicitud. '.$ex->getMessage(),
-            ], $ex->getCode());
+            ]);
         }
     }
 
     public function setRoleUser(Request $request, $user_id)
     {
         try {
-//        dd($request->all());
             $current_user = $request->user();
 
             $permission = V_PermissionUser::where('username', $current_user->username)
@@ -122,6 +117,9 @@ class UserController extends Controller
     {
 
         try {
+            $request->validate([
+                'name' => 'required',
+            ]);
             $current_user = $request->user();
 
             $permission = V_PermissionUser::where('username', $current_user->username)
@@ -148,7 +146,7 @@ class UserController extends Controller
         } catch (\Exception $ex) {
             return response()->json([
                 'error' => 'Hubo un error al procesar la solicitud. '.$ex->getMessage(),
-            ], $ex->getCode());
+            ]);
         }
     }
 
@@ -190,6 +188,11 @@ class UserController extends Controller
     public function getPermissions(Request $request, $id)
     {
         try {
+            $request->validate([
+                'number_perpage' => 'required|int',
+            ],[
+                'number_perpage.required' => 'Debe escribir un número de datos para su paginación',
+            ]);
             $current_user = $request->user();
 
             $user = User::find($id);
@@ -200,7 +203,7 @@ class UserController extends Controller
 
             if (count($permission) > 0) {
 
-                $permisos = V_PermissionUser::where('username', $user->username)->get();
+                $permisos = V_PermissionUser::where('username', $user->username)->paginate($request->number_perpage);
 
                 return response()->json([
                     'permisos' => $permisos
@@ -216,7 +219,7 @@ class UserController extends Controller
         } catch (\Exception $ex) {
             return response()->json([
                 'error' => 'Hubo un error al procesar la solicitud. '.$ex->getMessage(),
-            ], $ex->getCode());
+            ]);
         }
     }
 
@@ -224,6 +227,11 @@ class UserController extends Controller
     {
 
         try {
+            $request->validate([
+                'number_perpage' => 'required|int',
+            ],[
+                'number_perpage.required' => 'Debe escribir un número de datos para su paginación',
+            ]);
             $current_user = $request->user();
 
             $permission = V_PermissionUser::where('username', $current_user->username)
@@ -232,7 +240,7 @@ class UserController extends Controller
 
             if (count($permission) > 0) {
 
-                $permisos = V_NoPermissionUser::all();
+                $permisos = V_NoPermissionUser::paginate($request->number_perpage);
 
                 return response()->json([
                     'sin_permiso' => $permisos
@@ -246,7 +254,7 @@ class UserController extends Controller
         } catch (\Exception $ex) {
             return response()->json([
                 'error' => 'Hubo un error al procesar la solicitud. '.$ex->getMessage(),
-            ], $ex->getCode());
+            ]);
         }
 
     }
